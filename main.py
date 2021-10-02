@@ -26,61 +26,23 @@ display, screen, WIDTH, HEIGHT, RATIO, WINDOW_SIZE = framework.screen_size(1200,
 
 #images
 img_list = framework.load_tiles('tiles/ground blocks/ground_', TILE_TYPES, TILE_SIZE)
+load_img = pygame.image.load("uibuttons/ui_0.png")
+save_img = pygame.image.load("uibuttons/ui_1.png")
 
 #sounds
 jump_sound = pygame.mixer.Sound('sounds/jump.wav')
 grass_sounds = [pygame.mixer.Sound('sounds/grass_0.wav'), pygame.mixer.Sound('sounds/grass_1.wav')]
 
-#music
+# music
 pygame.mixer.music.load('sounds/music.wav')
 pygame.mixer.music.play(-1)
 
-def load_animations_player(color):
-    animation_frames = {}
-    animation_database = {}
-    animation_database['running'] = framework.load_animation('animation/running/'+color, [5, 5, 5, 5, 5], animation_frames)
-    animation_database['idle'] = framework.load_animation('animation/idle/'+color, [7, 7, 7, 7, 7], animation_frames)
-    animation_database['jump'] = framework.load_animation('animation/jump/'+color, [5, 5, 5, 5, 5], animation_frames)
-    return animation_frames, animation_database
+# make buttons
+save_button = framework.Button(WINDOW_SIZE[0] // 2, HEIGHT // 2, save_img, 10)
+load_button = framework.Button(WINDOW_SIZE[0] // 2, HEIGHT // 2 + 200, load_img, 10)
 
 
 background_objects = framework.create_backround(4000, 2000, 30)
-
-
-# background_objects = [[0.25,[120,50,70,400]],[0.25,[280,70,40,400]],[0.5,[30,40,40,400]],[0.5,[130,90,100,400]],[0.5,[300,80,120,400]]]
-
-def collision_test(rect, tiles):
-    hit_list = []
-    for tile in tiles:
-        if rect.colliderect(tile):
-            hit_list.append(tile)
-    return hit_list
-
-
-def move(rect, movement, tiles, player_y_momentum):
-    collision_types = {'top': False, 'bottom': False, 'right': False, 'left': False, }
-    rect.x += movement[0]
-    hit_list = collision_test(rect, tiles)
-    for tile in hit_list:
-        if movement[0] > 0:
-            rect.right = tile.left
-            collision_types['right'] = True
-        elif movement[0] < 0:
-            rect.left = tile.right
-            collision_types['left'] = True
-    rect.y += movement[1]
-    hit_list = collision_test(rect, tiles)
-    for tile in hit_list:
-        if movement[1] > 0:
-            rect.bottom = tile.top
-            collision_types['bottom'] = True
-        if movement[1] < 0:
-            rect.top = tile.bottom
-            collision_types['top'] = True
-            player_y_momentum = 0
-
-    return rect, collision_types, player_y_momentum
-
 
 game_map = framework.load_map('0')
 player_action = 'idle'
@@ -105,19 +67,25 @@ run = True
 while run:
     while start_screen:
         display.fill(BLUE)
-        framework.draw_text("Survivor", font, BLACK, display, WIDTH//2-60, HEIGHT//3-60)
+        framework.draw_text("Survivor", font, BLACK, display, WIDTH//2, HEIGHT//3)
+
         for event in pygame.event.get():
             if event.type == QUIT:
                 game_screen = False
                 pause_screen = False
                 start_screen = False
                 run = False
-            if event.type == MOUSEBUTTONDOWN:
-                animation_frames, animation_database = load_animations_player('black')
-                map_number = 1
-                game_screen = True
-                pause_screen = False
-                start_screen = False
+        if save_button.draw(display):
+            animation_frames, animation_database = framework.load_animations_player('black')
+            map_number = 1
+            game_screen = True
+            pause_screen = False
+            start_screen = False
+        if load_button.draw(display):
+            game_screen = False
+            pause_screen = False
+            start_screen = False
+            run = False
         screen.blit(pygame.transform.scale(display, WINDOW_SIZE), (0, 0))
         pygame.display.update()
         clock.tick(60)
@@ -184,7 +152,7 @@ while run:
             player_frame = 0
         player_image_id = animation_database[player_action][player_frame]
         player_image = animation_frames[player_image_id]
-        player_rect, collisions, player_y_momentum = move(player_rect, player_movement, tile_rects, player_y_momentum)
+        player_rect, collisions, player_y_momentum = framework.move_player(player_rect, player_movement, tile_rects, player_y_momentum)
         display.blit(pygame.transform.flip(player_image, player_flip, False), (player_rect.x - scroll[0], player_rect.y - scroll[1]))
 
         if collisions['bottom']:

@@ -79,8 +79,48 @@ def create_backround(number,location_range, size):
 def draw_text(text, font, color, surface, x, y):
     textobj = font.render(text, 1, color)
     textrect = textobj.get_rect()
-    textrect.topleft = (x,y)
+    textrect.center = (x,y)
     surface.blit(textobj, textrect)
+
+def load_animations_player(color):
+    animation_frames = {}
+    animation_database = {}
+    animation_database['running'] = load_animation('player_animation/running/'+color, [5, 5, 5, 5, 5], animation_frames)
+    animation_database['idle'] = load_animation('player_animation/idle/'+color, [7, 7, 7, 7, 7], animation_frames)
+    animation_database['jump'] = load_animation('player_animation/jump/'+color, [5, 5, 5, 5, 5], animation_frames)
+    return animation_frames, animation_database
+
+def collision_test(rect, tiles):
+    hit_list = []
+    for tile in tiles:
+        if rect.colliderect(tile):
+            hit_list.append(tile)
+    return hit_list
+
+def move_player(rect, movement, tiles, player_y_momentum):
+    collision_types = {'top': False, 'bottom': False, 'right': False, 'left': False, }
+    rect.x += movement[0]
+    hit_list = collision_test(rect, tiles)
+    for tile in hit_list:
+        if movement[0] > 0:
+            rect.right = tile.left
+            collision_types['right'] = True
+        elif movement[0] < 0:
+            rect.left = tile.right
+            collision_types['left'] = True
+    rect.y += movement[1]
+    hit_list = collision_test(rect, tiles)
+    for tile in hit_list:
+        if movement[1] > 0:
+            rect.bottom = tile.top
+            collision_types['bottom'] = True
+        if movement[1] < 0:
+            rect.top = tile.bottom
+            collision_types['top'] = True
+            player_y_momentum = 0
+
+    return rect, collision_types, player_y_momentum
+
 
 class Button():
     def __init__(self, x, y, image, scale, animation=True):
@@ -89,7 +129,7 @@ class Button():
         self.animation = animation
         self.image = pygame.transform.scale(image, (int(width * scale), int(height * scale)))
         self.rect = self.image.get_rect()
-        self.rect.topleft = (x, y)
+        self.rect.center = (x, y)
         self.clicked = False
 
     def draw(self, surface):
