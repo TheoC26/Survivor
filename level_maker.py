@@ -21,7 +21,7 @@ pygame.display.set_caption('Level Editor')
 ROWS = 150
 MAX_COLS = 150
 TILE_SIZE = 16
-TILE_TYPES = 21
+TILE_TYPES = 22
 level = 0
 current_tile = 0
 scroll_left = False
@@ -104,8 +104,8 @@ def draw_world():
 
 
 # create buttons
-save_button = Button(SCREEN_WIDTH // 2, SCREEN_HEIGHT + LOWER_MARGIN - 50, save_img, 1)
-load_button = Button(SCREEN_WIDTH // 2 + 200, SCREEN_HEIGHT + LOWER_MARGIN - 50, load_img, 1)
+save_button = Button(SCREEN_WIDTH // 2 + 200, SCREEN_HEIGHT + LOWER_MARGIN - 50, save_img, 4)
+load_button = Button(SCREEN_WIDTH // 2 + 400, SCREEN_HEIGHT + LOWER_MARGIN - 50, load_img, 4)
 # make a button list
 button_list = []
 button_col = 0

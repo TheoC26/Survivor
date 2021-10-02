@@ -12,12 +12,12 @@ BLUE = (100, 200, 220)
 font = pygame.font.SysFont('Avenir', 50)
 
 clock = pygame.time.Clock()
-pygame.display.set_caption("platformer")
+pygame.display.set_caption("SURVIVOR")
 #--------------STARTING STUFF--------------------
 
 #--------------GLOBAL VARIABLES--------------------
 TILE_SIZE = 16
-TILE_TYPES = 21
+TILE_TYPES = 22
 #--------x-----GLOBAL VARIABLES---------x-----------
 
 #--------------WINDOW SIZE FUNCTION-----------------
@@ -35,18 +35,13 @@ grass_sounds = [pygame.mixer.Sound('sounds/grass_0.wav'), pygame.mixer.Sound('so
 pygame.mixer.music.load('sounds/music.wav')
 pygame.mixer.music.play(-1)
 
-
-animation_frames = {}
-animation_database = {}
-animation_database['running'] = framework.load_animation('animation/running', [5, 5, 5, 5, 5], animation_frames)
-animation_database['idle'] = framework.load_animation('animation/idle', [7, 7, 7, 7, 7], animation_frames)
-animation_database['jump'] = framework.load_animation('animation/jump', [5, 5, 5, 5, 5], animation_frames)
-
-
-def generate_chunk():
-    number = random.randint(0,3)
-    chunk = framework.load_map(str(number))
-    return chunk
+def load_animations_player(color):
+    animation_frames = {}
+    animation_database = {}
+    animation_database['running'] = framework.load_animation('animation/running/'+color, [5, 5, 5, 5, 5], animation_frames)
+    animation_database['idle'] = framework.load_animation('animation/idle/'+color, [7, 7, 7, 7, 7], animation_frames)
+    animation_database['jump'] = framework.load_animation('animation/jump/'+color, [5, 5, 5, 5, 5], animation_frames)
+    return animation_frames, animation_database
 
 
 background_objects = framework.create_backround(4000, 2000, 30)
@@ -91,13 +86,14 @@ game_map = framework.load_map('0')
 player_action = 'idle'
 player_frame = 0
 player_flip = False
-player_rect = pygame.Rect(1600, 10, 8, 15)
+player_rect = pygame.Rect(916, 10, 8, 15)
 moving_right = False
 moving_left = False
 player_y_momentum = 0
 air_timer = 0
 true_scroll = [0, 0]
 offset = [0, 0]
+map_number = 0
 
 mute = False
 
@@ -117,6 +113,8 @@ while run:
                 start_screen = False
                 run = False
             if event.type == MOUSEBUTTONDOWN:
+                animation_frames, animation_database = load_animations_player('black')
+                map_number = 1
                 game_screen = True
                 pause_screen = False
                 start_screen = False
@@ -125,7 +123,11 @@ while run:
         clock.tick(60)
 
     while game_screen:
-        # print(offset[0])
+        if map_number == 0:
+            game_map = framework.load_map('0')
+        elif map_number == 1:
+            game_map = framework.load_map('1')
+
         true_scroll[0] += (player_rect.x - true_scroll[0] - WIDTH//RATIO//2 - 4)/10
         true_scroll[1] += (player_rect.y - true_scroll[1] - HEIGHT // RATIO // 2 - 7)/10
         scroll = true_scroll.copy()
@@ -133,55 +135,6 @@ while run:
         scroll[1] = int(scroll[1])
 
         display.fill((160, 244, 255))
-
-
-        # generate infenint world
-        # right
-        if player_rect.x > (len(game_map[0]) - 10)*16:
-            number_chunks = len(game_map) // TILE_SIZE
-            right_chunks = []
-            full_chunk = []
-            for x in range(number_chunks):
-                right_chunks.append(generate_chunk())
-            for chunk in right_chunks:
-                for row in chunk:
-                    full_chunk.append(row)
-            y = 0
-            for row in game_map:
-                for x in full_chunk[y]:
-                    row.append(x)
-                y+=1
-
-        # left
-        # if player_rect.x < 10 * 16:
-        #     offset[0] -= 16*16
-        #     print('true')
-        #     number_chunks = len(game_map) // TILE_SIZE
-        #     print(number_chunks)
-        #     left_chunks = []
-        #     full_chunk = []
-        #     for x in range(number_chunks):
-        #         left_chunks.append(generate_chunk())
-        #     for chunk in left_chunks:
-        #         for row in chunk:
-        #             full_chunk.append(row)
-        #     y = 0
-        #     for row in game_map:
-        #         game_map[y] = full_chunk[y]+game_map[y]
-        #         y += 1
-
-        # down
-        if player_rect.y > (len(game_map)-10)*TILE_SIZE:
-            number_chunks = len(game_map[0])//TILE_SIZE
-            down_chunks = []
-            for x in range(number_chunks):
-                down_chunks.append(generate_chunk())
-            for i in range(16):
-                line = []
-                for c in range(number_chunks):
-                    line = line+down_chunks[c][i]
-                game_map.append(line)
-
 
 
         for background_object in background_objects:

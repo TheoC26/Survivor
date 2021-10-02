@@ -29,14 +29,10 @@ def load_tiles(path, tile_types, tile_size):
 
 def load_map(chunk_number):
     map_data = []
-    for row in range(16):
-        r = [-1] * 16
+    for row in range(150):
+        r = [-1] * 150
         map_data.append(r)
-
-    # create ground
-    for tile in range(0, 16):
-        map_data[16 - 1][tile] = -1
-    with open(f'level{chunk_number}_data.csv', newline='') as csvfile:
+    with open(f'map{chunk_number}_data.csv', newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         for x, row in enumerate(reader):
             for y, tile in enumerate(row):
@@ -44,12 +40,13 @@ def load_map(chunk_number):
     return map_data
 
 def load_animation(path,frame_durations, animation_frames):
-    animation_name = path.split('/')[-1]
+    animation_name = path.split('/')[-2]
     animation_frame_data = []
     n = 0
     for frame in frame_durations:
         animation_frame_id = animation_name + '_' + str(n)
         img_loc = path + '/' + animation_frame_id + '.png'
+        print(img_loc)
         animation_image = pygame.image.load(img_loc).convert()
         animation_image.set_colorkey((255,255,255))
         animation_frames[animation_frame_id] = animation_image.copy()
@@ -86,9 +83,10 @@ def draw_text(text, font, color, surface, x, y):
     surface.blit(textobj, textrect)
 
 class Button():
-    def __init__(self, x, y, image, scale):
+    def __init__(self, x, y, image, scale, animation=True):
         width = image.get_width()
         height = image.get_height()
+        self.animation = animation
         self.image = pygame.transform.scale(image, (int(width * scale), int(height * scale)))
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
@@ -110,7 +108,13 @@ class Button():
             self.clicked = False
 
         # draw button
-        surface.blit(self.image, (self.rect.x, self.rect.y))
+        if self.animation:
+            if self.rect.collidepoint(pos):
+                surface.blit(self.image, (self.rect.x, self.rect.y - 5))
+            else:
+                surface.blit(self.image, (self.rect.x, self.rect.y))
+        else:
+            surface.blit(self.image, (self.rect.x, self.rect.y))
 
         return action
 
