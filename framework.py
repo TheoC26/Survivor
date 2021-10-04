@@ -46,7 +46,6 @@ def load_animation(path,frame_durations, animation_frames):
     for frame in frame_durations:
         animation_frame_id = animation_name + '_' + str(n)
         img_loc = path + '/' + animation_frame_id + '.png'
-        print(img_loc)
         animation_image = pygame.image.load(img_loc).convert()
         animation_image.set_colorkey((255,255,255))
         animation_frames[animation_frame_id] = animation_image.copy()
@@ -82,10 +81,10 @@ def draw_text(text, font, color, surface, x, y):
     textrect.center = (x,y)
     surface.blit(textobj, textrect)
 
-def load_animations_player(color):
+def load_animations_player(color, speed):
     animation_frames = {}
     animation_database = {}
-    animation_database['running'] = load_animation('player_animation/running/'+color, [5, 5, 5, 5, 5], animation_frames)
+    animation_database['running'] = load_animation('player_animation/running/'+color, [speed, speed, speed, speed, speed], animation_frames)
     animation_database['idle'] = load_animation('player_animation/idle/'+color, [7, 7, 7, 7, 7], animation_frames)
     animation_database['jump'] = load_animation('player_animation/jump/'+color, [5, 5, 5, 5, 5], animation_frames)
     return animation_frames, animation_database
@@ -95,6 +94,13 @@ def collision_test(rect, tiles):
     for tile in tiles:
         if rect.colliderect(tile):
             hit_list.append(tile)
+    return hit_list
+
+def collision_test_enemy(player_rect, enemy_list):
+    hit_list = []
+    for enemy in enemy_list:
+        if player_rect.collidrect(enemy):
+            hit_list.append(enemy)
     return hit_list
 
 def move_player(rect, movement, tiles, player_y_momentum):
@@ -120,6 +126,9 @@ def move_player(rect, movement, tiles, player_y_momentum):
             player_y_momentum = 0
 
     return rect, collision_types, player_y_momentum
+
+def scale(val, src, dst):
+    return ((val - src[0]) / (src[1]-src[0])) * (dst[1]-dst[0]) + dst[0]
 
 
 class Button():
@@ -158,3 +167,25 @@ class Button():
 
         return action
 
+class Enemy():
+    def __init__(self, x, y, radius):
+        self.radius = radius
+        self.enemy_rect = pygame.Rect(x, y, radius, radius)
+
+    def draw(self, surface, scroll, rect, speed):
+        # distance = abs((self.enemy_rect.centery + self.enemy_rect.centerx) - (rect.centery + rect.centerx))
+        distance = abs(self.enemy_rect.centerx - rect.centerx)
+        color = abs(distance)
+        if color > 255:
+            color = 255
+        pygame.draw.circle(surface, (200, color, 85), (self.enemy_rect.centerx - scroll[0], self.enemy_rect.centery - scroll[1]), self.radius)
+        if self.enemy_rect.x > rect.x:
+            self.enemy_rect.x -= speed
+        if self.enemy_rect.x < rect.x:
+            self.enemy_rect.x += speed
+        if self.enemy_rect.y > rect.y:
+            self.enemy_rect.y -= speed/1.2
+        if self.enemy_rect.y < rect.y:
+            self.enemy_rect.y += speed/1.2
+
+        # self.enemy_rect = rect
